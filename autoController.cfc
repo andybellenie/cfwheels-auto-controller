@@ -11,6 +11,7 @@
 		<cfargument name="modelName" type="string" default="#Singularize(variables.$class.name)#" hint="I am the name of the controller's default model (defaults to the singular of the controller name).">
 		<cfargument name="modelVariable" type="string" default="#arguments.modelName#" hint="I am the name of the variable used to store the controller's default model (defaults to the model name).">
 		<cfargument name="modelDisplayName" type="string" default="#Humanize(arguments.modelName)#" hint="I am the display name of the controller's default model (defaults to the model name).">
+		<cfargument name="perPage" type="numeic" default="0" hint="The number of records to return in a automatic listing. Use zero for unlimited results (defaults to zero).">		
 		<cfargument name="afterCreateKey" type="string" default="" hint="I am the location of a key to be used after a successful create (defaults to blank).">
 		<cfargument name="afterCreateController" type="string" default="#variables.$class.name#" hint="I am the controller to redirect to after a successful create (defaults to current controller).">
 		<cfargument name="afterCreateAction" type="string" default="index" hint="I am the action to redirect to after a successful create (defaults to 'index').">
@@ -49,6 +50,11 @@
 	<cffunction name="modelDisplayName" returntype="void" access="public" mixin="controller">
 		<cfargument name="modelDisplayName" type="string" required="true">
 		<cfset variables.$class.autoController.modelDisplayName = arguments.modelDisplayName>
+	</cffunction>
+
+	<cffunction name="perPage" returntype="void" access="public" mixin="controller">
+		<cfargument name="perPage" type="numeric" required="true">
+		<cfset variables.$class.autoController.perPage = arguments.perPage>
 	</cffunction>
 
 	<cffunction name="afterCreateKey" returntype="void" access="public" mixin="controller">
@@ -124,9 +130,15 @@
 		<cfargument name="modelName" type="string" default="#variables.$class.autoController.modelName#" hint="I am the name of the action's model (defaults to the controller's default model name).">
 		<cfargument name="modelVariable" type="string" default="#arguments.modelName#" hint="I am the name of the variable used to store the action's default model (defaults to the actions model name).">
 		<cfargument name="modelDisplayName" type="string" default="#Humanize(arguments.modelName)#" hint="I am the display name of the action's default model (defaults to the humanized action's model name).">
+		<cfargument name="page" type="numeric" default="1" hint="Passed through to the findAll() method for pagination.">
+		<cfargument name="perPage" type="numeric" default="#variables.$class.autoController.perPage#" hint="Passed through to the findAll() method for pagination.">
 		<cfargument name="template" type="string" default="index" hint="I am the name of this action's template file.">
 		<cfset variables.$autoController = Duplicate(arguments)>
-		<cfset variables[Pluralize(arguments.modelVariable)] = model(arguments.modelName).findAll()>
+		<cfif arguments.perPage gt 0>
+			<cfset variables[Pluralize(arguments.modelVariable)] = model(arguments.modelName).findAll(page=arguments.page, perPage=arguments.perPage)>	
+		<cfelse>
+			<cfset variables[Pluralize(arguments.modelVariable)] = model(arguments.modelName).findAll()>
+		</cfif>
 		<cfset renderPage(template=arguments.template)>
 	</cffunction>
 
